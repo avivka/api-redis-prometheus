@@ -5,7 +5,6 @@ services:
     image: redis:7
     volumes:
       - ./redis.conf:/usr/local/etc/redis/redis.conf
-      - ./acl.conf:/usr/local/etc/redis/acl.conf
     environment:
       REDIS_PASSWORD_FILE: /run/secrets/redis_password
     secrets:
