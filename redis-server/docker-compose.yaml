@@ -1,0 +1,36 @@
+version: "3.3"
+
+services:
+  redis-server:
+    image: redis:7
+    volumes:
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+      - ./acl.conf:/usr/local/etc/redis/acl.conf
+    environment:
+      REDIS_PASSWORD_FILE: /run/secrets/redis_password
+    secrets:
+      - redis_password
+    command: bash -c "ls -l /run/secrets/redis_password && redis-server --requirepass $$(cat $$REDIS_PASSWORD_FILE)"
+    ports:
+      - 6379:6379
+    networks:
+      - public
+
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.6.0-alpine
+    ports:
+      - 9121:9121
+    networks:
+      - public
+    command:
+      - '--redis.addr=redis://redis-server:6379'
+      - '--redis.password=slightly-locked'
+
+  prometheus:
+    volumes:
+      - ${PWD}/redis-server/redis.json:/etc/prometheus/targets/redis.json
+      - ${PWD}/redis-server/redis.rules:/etc/prometheus/redis.rules
+
+secrets:
+  redis_password:
+    file: redis_password.txt
